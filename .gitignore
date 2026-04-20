@@ -1,0 +1,19 @@
+# Logs
+logs
+logs
+*.log
+npm-debug.log*
+
+# Dependency directories
+node_modules
+
+# optional npm cache directory
+.npm
+
+# System files and IDE settings folders
+.DS_Store
+.vscode
+.cursor
+.cursorrules
+.cursorignore
+.cursorignorerules
