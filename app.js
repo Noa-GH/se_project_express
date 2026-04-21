@@ -11,8 +11,9 @@ mongoose
     })
     .catch((e) => console.error(e));
 
+app.use(express.json());
 
-app.get((req, res) => {
+app.get('/', (req, res) => {
     res.send("Hello World");
 });
 
