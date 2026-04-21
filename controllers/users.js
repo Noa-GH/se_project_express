@@ -15,7 +15,7 @@ module.exports.getUsers = (req, res) => {
 };
 
 // Get /users by id and return a single user per request
-module.exports.getUsers = (req, res) => {
+module.exports.getUser = (req, res) => {
     const { userId } = req.params;
     User.findById(userId)
         .orFail()
@@ -44,7 +44,7 @@ module.exports.createUser = (req, res) => {
         .then((user) => res.send(user))
         .catch((err) => {
             console.error(err);
-            if (err.name === 'ValdationError') {
+            if (err.name === 'ValidationError') {
                 return res.status(BAD_REQUEST)
                     .send({ message: 'Invalid data' })
             }
@@ -53,3 +53,4 @@ module.exports.createUser = (req, res) => {
                 .send({ message: 'An error has occurred on the server.' });
         });
 };
+

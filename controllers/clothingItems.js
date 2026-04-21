@@ -33,7 +33,7 @@ module.exports.createClothingItem = (req, res) => {
 };
 
 // DELETE - delete a clothing item by _id
-module.exports.deleteClotingItem = (req, res) => {
+module.exports.deleteClothingItem = (req, res) => {
     const { itemId } = req.params;
 
     ClothingItem.findByIdAndDelete(itemId)
@@ -81,7 +81,7 @@ module.exports.likeItem = (req, res) => {
 };
 
 // DELETE - unlike an item
-module.exports.likeItem = (req, res) => {
+module.exports.dislikeItem = (req, res) => {
     ClothingItem.findByIdAndUpdate(
         req.params.itemId,
         { $pull: { likes: req.user._id } }, //req.user._id is for user auth later in project.
