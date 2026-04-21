@@ -1,5 +1,3 @@
-// const _id = "";
-
 module.exports = {
     env: {
         es2021: true,
@@ -13,7 +11,7 @@ module.exports = {
             },
             files: [".eslintrc.{js,cjs,ts}"],
             parserOptions: {
-                sourceType: "script",
+                sourceType: "module",
             },
         },
     ],
@@ -23,5 +21,6 @@ module.exports = {
     },
     rules: {
         "no-console": ["warn", { allow: ["warn", "error"] }],
+        "no-underscore-dangle": ["error", { "allow": ["_id"] }],
     },
 };

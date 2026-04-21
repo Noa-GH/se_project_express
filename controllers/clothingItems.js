@@ -17,7 +17,7 @@ module.exports.getClothingItems = (req, res) => {
 // POST /items — create a clothing item
 module.exports.createClothingItem = (req, res) => {
     const { name, weather, imageUrl } = req.body;
-    const owner = req.user._id; //req.user._id is for user auth later in project.
+    const owner = req.user._id; // req.user._id is for user auth later in project.
 
     ClothingItem.create({ name, weather, imageUrl, owner })
         .then((item) => res.send(item))
@@ -59,7 +59,7 @@ module.exports.deleteClothingItem = (req, res) => {
 module.exports.likeItem = (req, res) => {
     ClothingItem.findByIdAndUpdate(
         req.params.itemId,
-        { $addToSet: { likes: req.user._id } }, //req.user._id is for user auth later in project.
+        { $addToSet: { likes: req.user._id } }, // req.user._id is for user auth later in project.
         { new: true }
     )
         .orFail()
@@ -84,7 +84,7 @@ module.exports.likeItem = (req, res) => {
 module.exports.dislikeItem = (req, res) => {
     ClothingItem.findByIdAndUpdate(
         req.params.itemId,
-        { $pull: { likes: req.user._id } }, //req.user._id is for user auth later in project.
+        { $pull: { likes: req.user._id } }, // req.user._id is for user auth later in project.
         { new: true }
     )
         .orFail()
