@@ -18,7 +18,28 @@ const userSchema = new mongoose.Schema({
       },
       message: "You must enter valid URL",
     },
-    // default: 'default-avatar.png' Fallback image is needed
+  },
+  email: {
+    type: String,
+    required: [true, "A valid Email is required"],
+    validate: {
+      validator(value) {
+        return validator.isURL(value);
+      },
+      message: "You must enter valid URL",
+    },
+    index: {
+      unique: true,
+      sparse: true,
+    },
+    lowercase: true,
+  },
+  password: {
+    type: String,
+    minlength: 4,
+    maxlength: 12,
+    required: [true, "Password is required"],
+    trim: true,
   },
 });
 
