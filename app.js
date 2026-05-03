@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const mongoose = require("mongoose");
 const mainRouter = require("./routes/index");
 const auth = require("./middleware/auth");
@@ -15,6 +16,7 @@ mongoose
   .catch((e) => console.error(e));
 
 app.use(express.json());
+app.use(cors());
 
 app.post("/signin", login);
 app.post("/signup", createUser);
