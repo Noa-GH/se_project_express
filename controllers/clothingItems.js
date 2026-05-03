@@ -2,6 +2,7 @@ const ClothingItem = require("../models/clothingItem.model");
 const {
   BAD_REQUEST,
   NOT_FOUND,
+  FORBIDDEN,
   INTERNAL_SERVER_ERROR,
 } = require("../utils/errors");
 
@@ -39,8 +40,14 @@ module.exports.createClothingItem = (req, res) => {
 module.exports.deleteClothingItem = (req, res) => {
   const { itemId } = req.params;
 
-  ClothingItem.findByIdAndDelete(itemId)
+  ClothingItem.findById(itemId)
     .orFail()
+    .then((item) => {
+      if (item.owoner.toString() !== req.user._id.toString()) {
+        return res.status(FORBIDDEN).send({ message: "Item not found" });
+      }
+      return ClothingItem.findByIdAndDelete(itemId);
+    })
     .then((item) => res.send(item))
     .catch((err) => {
       console.error(err);
