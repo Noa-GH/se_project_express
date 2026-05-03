@@ -1,30 +1,27 @@
-// eslint-disable-next-line import/no-unresolved
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 const User = require("../models/user.model");
 
-// Controller to create a new user
-async function createUser(req, res) {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email and password are required." });
-    }
+const createUser = (req, res) => {
+  const { name, avatar, email, password } = req.body;
 
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
+  bcrypt
+    .hash(password, 10)
+    .then((hash) => User.create({ name, avatar, email, password: hash }))
+    .then((user) => {
+      const userWithoutPassword = user.toObject();
+      delete userWithoutPassword.password;
 
-    // Create and save the user
-    const user = new User({ email, password: hashedPassword });
-    await user.save();
-
-    return res.status(201).json({ message: "User created successfully." });
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Error creating user.", error: error.message });
-  }
-}
+      res.status(201).send({ data: userWithoutPassword });
+    })
+    .catch((err) => {
+      if (err.code === 11000) {
+        return res.status(409).send({ message: "This Email already exists" });
+      }
+      if (err.name === "ValidationError") {
+        return res.status(400).send({ message: err.message });
+      }
+      return res.status(500).send({ message: "Internal server error" });
+    });
+};
 
 module.exports = createUser;
