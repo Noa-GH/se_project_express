@@ -1,5 +1,6 @@
 // eslint-disable-next-line import/no-unresolved
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 const { JWT_SECRET } = require("../utils/config");
 const {
@@ -16,7 +17,7 @@ module.exports.login = (req, res) => {
 
   User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = JWT_SECRET.sign({ _id: user._id }, JWT_SECRET, {
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
       res.send({ token });
@@ -54,7 +55,25 @@ module.exports.createUser = (req, res) => {
   );
 };
 
-module.exports.updateuser = (req, res) => {
+module.exports.getCurrentUser = (req, res) => {
+  User.findById(req.user._id)
+    .orFail()
+    .then((user) => res.send(user))
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOT_FOUND).send({ message: "User Not Found" });
+      }
+      if (err.name === "CastError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
+      }
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
+    });
+};
+
+module.exports.updateUser = (req, res) => {
   const { name, avatar } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
