@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
-const { UNAUTHORIZED } = require("../utils/errors");
+// const { UNAUTHORIZED } = require("../utils/errors");
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
     required: [true, "Email is required"],
     validate: {
       validator(value) {
-        return validator.isURL(value);
+        return validator.isEmail(value);
       },
       message: "You must enter valid email",
     },
@@ -55,5 +55,8 @@ userSchema.statics.findByUserCredentials = function (email, password) {
       });
     });
 };
+
+// Create unique index on email field
+userSchema.index({ email: 1 }, { unique: true });
 
 module.exports = mongoose.model("user", userSchema);

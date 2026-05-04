@@ -39,15 +39,13 @@ module.exports.createClothingItem = (req, res) => {
 module.exports.deleteClothingItem = (req, res) => {
   const { itemId } = req.params;
 
-  ClothingItem.findByIdAndDelete(itemId)
+  ClothingItem.findById(itemId)
     .orFail()
     .then((item) => {
-      if (item.owner.toString() !== req.user._id) {
-        return res.status().send({
-          message: "You do not have the permssion to delete this item",
-        });
+      if (item.owner.toString() !== req.user._id.toString()) {
+        return res.status(403).send({ message: "Forbidden" });
       }
-      return item.deleteOne().then(() => res.send(item));
+      return ClothingItem.findByIdAndDelete(itemId).then(() => res.send(item));
     })
     .catch((err) => {
       console.error(err);

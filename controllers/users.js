@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../models/user.model");
@@ -16,15 +17,19 @@ module.exports.createUser = (req, res) => {
 
   bcrypt
     .hash(password, 10) // 10 rounds of salt
-    .then((hash) => {
-      User.create({ name, avatar, email, password: hash });
+    .then((hash) => User.create({ name, avatar, email, password: hash }))
+    .then((user) => {
+      res.status(201).send({
+        _id: user._id,
+        name: user.name,
+        avatar: user.avatar,
+        email: user.email,
+      });
     })
     .catch((err) => {
       console.error(err);
       if (err.code === 11000) {
-        return res
-          .status(CONFLICT)
-          .send({ message: "Email is already in use" });
+        return res.status(CONFLICT).send({ message: "Email already exists" });
       }
       if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid data" });
@@ -39,7 +44,11 @@ module.exports.createUser = (req, res) => {
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
 
-  User.findByCredentials(email, password)
+  if (!email || !password) {
+    return res.status(BAD_REQUEST).send({ message: "Invalid data" });
+  }
+
+  User.findByUserCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
@@ -50,7 +59,7 @@ module.exports.login = (req, res) => {
       console.error(err);
       return res
         .status(UNAUTHORIZED)
-        .send({ message: "Incorrect email or passwword" });
+        .send({ message: "Incorrect email or password" });
     });
 };
 
