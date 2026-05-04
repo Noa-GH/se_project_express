@@ -20,6 +20,7 @@
     "lint": "npx eslint . --fix"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "mongoose": "^8.23.0",
     "validator": "^13.15.35"

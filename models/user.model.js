@@ -20,6 +20,21 @@ const userSchema = new mongoose.Schema({
     },
     // default: 'default-avatar.png' Fallback image is needed
   },
+  email: {
+    required: [true, "Email is required"],
+    validator(value) {
+      return validator.isURL(value);
+    },
+    message: "You must enter valid URL",
+  },
+  password: {
+    required: true,
+    select: false,
+    validator(value) {
+      return validator.isURL(value);
+    },
+    message: "You must enter valid URL",
+  },
 });
 
 module.exports = mongoose.model("user", userSchema);
