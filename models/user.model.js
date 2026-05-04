@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const bcrypt = require("bcryptjs");
+const { UNAUTHORIZED } = require("../utils/errors");
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -18,23 +20,40 @@ const userSchema = new mongoose.Schema({
       },
       message: "You must enter valid URL",
     },
-    // default: 'default-avatar.png' Fallback image is needed
   },
   email: {
+    type: String,
+    unique: true,
     required: [true, "Email is required"],
-    validator(value) {
-      return validator.isURL(value);
+    validate: {
+      validator(value) {
+        return validator.isURL(value);
+      },
+      message: "You must enter valid email",
     },
-    message: "You must enter valid URL",
   },
   password: {
-    required: true,
+    type: String,
+    required: [true, "Password is required"],
     select: false,
-    validator(value) {
-      return validator.isURL(value);
-    },
-    message: "You must enter valid URL",
   },
 });
+
+userSchema.statics.findByUserCredentials = function (email, password) {
+  return this.findOne({ email })
+    .select("+password")
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new Error("Incorrect email or password"));
+      }
+
+      return bcrypt.compare(password, user.password).then((matched) => {
+        if (!matched) {
+          return Promise.reject(new Error("Incorrect email or password"));
+        }
+        return user;
+      });
+    });
+};
 
 module.exports = mongoose.model("user", userSchema);

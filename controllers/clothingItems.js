@@ -41,7 +41,14 @@ module.exports.deleteClothingItem = (req, res) => {
 
   ClothingItem.findByIdAndDelete(itemId)
     .orFail()
-    .then((item) => res.send(item))
+    .then((item) => {
+      if (item.owner.toString() !== req.user._id) {
+        return res.status().send({
+          message: "You do not have the permssion to delete this item",
+        });
+      }
+      return item.deleteOne().then(() => res.send(item));
+    })
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
