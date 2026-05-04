@@ -39,7 +39,7 @@ module.exports.createUser = (req, res) => {
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
 
-  User.findByCrednetials(email, password)
+  User.findByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
@@ -60,8 +60,8 @@ module.exports.getCurrentUser = (req, res) => {
     .orFail()
     .then((user) => res.send(user))
     .catch((err) => {
-      console.err(err);
-      if (err.name === "DocumentNotFound") {
+      console.error(err);
+      if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND).send({ message: "User not found" });
       }
       if (err.name === "CastError") {
@@ -85,8 +85,8 @@ module.exports.updateCurrentUser = (req, res) => {
     .orFail()
     .then((user) => res.send(user))
     .catch((err) => {
-      console.err(err);
-      if (err.name === "DocumentNotFound") {
+      console.error(err);
+      if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND).send({ message: "User not found" });
       }
       if (err.name === "CastError") {
