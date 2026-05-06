@@ -12,6 +12,12 @@ node_modules
 .npm
 
 # System files and IDE settings folders
+.demos/
+!gifs/
+!screenshots/
+!README.md
+!SCREENSHOTS.md
+!VISUAL_DEMO_GUIDE.md
 .DS_Store
 .vscode
 .cursor
