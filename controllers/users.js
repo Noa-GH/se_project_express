@@ -8,7 +8,6 @@ const {
   NOT_FOUND,
   INTERNAL_SERVER_ERROR,
   CONFLICT,
-  UNAUTHORIZED,
 } = require("../utils/errors");
 
 // Post /signup - will create a new user
@@ -41,12 +40,16 @@ module.exports.createUser = (req, res) => {
 };
 
 // POST /signin - authenticate the return the JWT token for logging in
-module.exports.login = (req, res) => {
+module.exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(BAD_REQUEST).send({ message: "Invalid data" });
+    return res
+      .status(BAD_REQUEST)
+      .send({ message: "Email and password are required" });
   }
+
+  // const hashedPassword = await bcrypt.hash(password, 10)
 
   User.findByUserCredentials(email, password)
     .then((user) => {
@@ -57,9 +60,12 @@ module.exports.login = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
+      if (err.code === 11000) {
+        return res.status(CONFLICT).send({ message: "A conflict has occured" });
+      }
       return res
-        .status(UNAUTHORIZED)
-        .send({ message: "Incorrect email or password" });
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
     });
 };
 
