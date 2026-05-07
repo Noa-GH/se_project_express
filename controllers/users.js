@@ -8,6 +8,7 @@ const {
   NOT_FOUND,
   INTERNAL_SERVER_ERROR,
   CONFLICT,
+  UNAUTHORIZED,
 } = require("../utils/errors");
 
 // Post /signup - will create a new user
@@ -60,8 +61,10 @@ module.exports.login = async (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      if (err.code === 11000) {
-        return res.status(CONFLICT).send({ message: "A conflict has occured" });
+      if (err.message === "Incorrect email or password") {
+        return res
+          .status(UNAUTHORIZED)
+          .send({ message: "Incorrect email or password" });
       }
       return res
         .status(INTERNAL_SERVER_ERROR)
