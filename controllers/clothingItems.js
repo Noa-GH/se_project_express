@@ -66,7 +66,7 @@ module.exports.deleteClothingItem = (req, res) => {
 module.exports.likeItem = (req, res) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
-    { $addToSet: { likes: req.user._id } }, // req.user._id is for user auth later in project.
+    { $addToSet: { likes: req.user._id } },
     { new: true }
   )
     .orFail()
@@ -89,7 +89,7 @@ module.exports.likeItem = (req, res) => {
 module.exports.dislikeItem = (req, res) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
-    { $pull: { likes: req.user._id } }, // req.user._id is for user auth later in project.
+    { $pull: { likes: req.user._id } },
     { new: true }
   )
     .orFail()
