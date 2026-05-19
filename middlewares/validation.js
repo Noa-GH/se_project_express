@@ -5,7 +5,7 @@ const validateURL = (value, helpers) => {
     if (validator.isURL(value)) {
         return value;
     }
-    return helpers.message("Invalid URL");
+    return helpers.error("string.uri");
 };
 
 // 1. The clothing item body when an item is created
@@ -68,20 +68,27 @@ const validateId = celebrate({
         itemId: Joi.string().hex().length(24).required().messages({
             "string.hex": 'The "itemId" field must be a hexadecimal value',
             "string.length": 'The "itemId" field must be 24 characters long',
+            "any.required": 'The "itemId" field is required',
         }),
     }),
 });
 
-const validateURL = (value, helpers) => {
-    if (validator.isURL(value)) {
-        return value;
-    }
-    return helpers.error('string.uri');
-};
 
 module.exports = {
     validateClothingItem,
     validateUser,
     validateLogin,
     validateId,
+    body: Joi.object().keys({
+        name: Joi.string().required().min(2).max(30).messages({
+            "string.min": 'The minimum length of the "name" field is 2',
+            "string.max": 'The maximum length of the "name" field is 30',
+            "string.empty": 'The "name" field must be filled in',
+        }),
+
+        imageUrl: Joi.string().required().custom(validateURL).messages({
+            "string.empty": 'The "imageUrl" field must be filled in',
+            "string.uri": 'the "imageUrl" field must be a valid url',
+        }),
+    }),
 };

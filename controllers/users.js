@@ -40,7 +40,8 @@ module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return next(new BadRequestError("Email and password are required"));
+    next(new BadRequestError("Email and password are required"));
+    return;
   }
 
   User.findByUserCredentials(email, password)
