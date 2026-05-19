@@ -1,18 +1,16 @@
-/* eslint-disable consistent-return */
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../models/user.model");
 const { JWT_SECRET } = require("../utils/config");
 const {
-  BAD_REQUEST,
-  NOT_FOUND,
-  INTERNAL_SERVER_ERROR,
-  CONFLICT,
-  UNAUTHORIZED,
-} = require("../utils/errors");
+  BadRequestError,
+  NotFoundError,
+  ConflictError,
+  UnauthorizedError,
+} = require("../middlewares/error-handler");
 
 // Post /signup - will create a new user
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
   bcrypt
@@ -27,30 +25,23 @@ module.exports.createUser = (req, res) => {
       });
     })
     .catch((err) => {
-      console.error(err);
       if (err.code === 11000) {
-        return res.status(CONFLICT).send({ message: "Email already exists" });
+        next(new ConflictError("Email already exists"));
+      } else if (err.name === "ValidationError") {
+        next(new BadRequestError("Invalid data"));
+      } else {
+        next(err);
       }
-      if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid data" });
-      }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server." });
     });
 };
 
-// POST /signin - authenticate the return the JWT token for logging in
-module.exports.login = async (req, res) => {
+// POST /signin - authenticate and return the JWT token for logging in
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res
-      .status(BAD_REQUEST)
-      .send({ message: "Email and password are required" });
+    return next(new BadRequestError("Email and password are required"));
   }
-
-  // const hashedPassword = await bcrypt.hash(password, 10)
 
   User.findByUserCredentials(email, password)
     .then((user) => {
@@ -60,39 +51,32 @@ module.exports.login = async (req, res) => {
       res.send({ token });
     })
     .catch((err) => {
-      console.error(err);
       if (err.message === "Incorrect email or password") {
-        return res
-          .status(UNAUTHORIZED)
-          .send({ message: "Incorrect email or password" });
+        next(new UnauthorizedError("Incorrect email or password"));
+      } else {
+        next(err);
       }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server." });
     });
 };
 
 // GET /user/me - this will return currently logged in user
-module.exports.getCurrentUser = (req, res) => {
+module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail()
     .then((user) => res.send(user))
     .catch((err) => {
-      console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "User not found" });
+        next(new NotFoundError("User not found"));
+      } else if (err.name === "CastError") {
+        next(new BadRequestError("Invalid user ID"));
+      } else {
+        next(err);
       }
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
-      }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server." });
     });
 };
 
 // PATCH - /user/me - update name and/or avatar of a current user
-module.exports.updateCurrentUser = (req, res) => {
+module.exports.updateCurrentUser = (req, res, next) => {
   const { name, avatar } = req.body;
 
   User.findByIdAndUpdate(
@@ -103,15 +87,14 @@ module.exports.updateCurrentUser = (req, res) => {
     .orFail()
     .then((user) => res.send(user))
     .catch((err) => {
-      console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "User not found" });
+        next(new NotFoundError("User not found"));
+      } else if (err.name === "CastError") {
+        next(new BadRequestError("Invalid user ID"));
+      } else if (err.name === "ValidationError") {
+        next(new BadRequestError("Invalid data"));
+      } else {
+        next(err);
       }
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
-      }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server." });
     });
 };
