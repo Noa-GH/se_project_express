@@ -1,13 +1,16 @@
+/* eslint-disable consistent-return */
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../models/user.model");
 const { JWT_SECRET } = require("../utils/config");
+
+// Error imports
 const {
   BadRequestError,
+  UnauthorizedError,
   NotFoundError,
   ConflictError,
-  UnauthorizedError,
-} = require("../middlewares/error-handler");
+} = require("../utils/errors");
 
 // Post /signup - will create a new user
 module.exports.createUser = (req, res, next) => {
@@ -35,29 +38,28 @@ module.exports.createUser = (req, res, next) => {
     });
 };
 
-// POST /signin - authenticate and return the JWT token for logging in
-module.exports.login = (req, res, next) => {
+// POST /signin - authenticate the return the JWT token for logging in
+module.exports.login = async (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
     next(new BadRequestError("Email and password are required"));
-    return;
-  }
-
-  User.findByUserCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
-        expiresIn: "7d",
+  } else {
+    User.findByUserCredentials(email, password)
+      .then((user) => {
+        const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+          expiresIn: "7d",
+        });
+        res.send({ token });
+      })
+      .catch((err) => {
+        if (err.message === "Incorrect email or password") {
+          next(new UnauthorizedError("Incorrect email or password"));
+        } else {
+          next(err);
+        }
       });
-      res.send({ token });
-    })
-    .catch((err) => {
-      if (err.message === "Incorrect email or password") {
-        next(new UnauthorizedError("Incorrect email or password"));
-      } else {
-        next(err);
-      }
-    });
+  }
 };
 
 // GET /user/me - this will return currently logged in user
@@ -68,7 +70,8 @@ module.exports.getCurrentUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
         next(new NotFoundError("User not found"));
-      } else if (err.name === "CastError") {
+      }
+      if (err.name === "CastError") {
         next(new BadRequestError("Invalid user ID"));
       } else {
         next(err);
@@ -90,10 +93,9 @@ module.exports.updateCurrentUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
         next(new NotFoundError("User not found"));
-      } else if (err.name === "CastError") {
+      }
+      if (err.name === "CastError") {
         next(new BadRequestError("Invalid user ID"));
-      } else if (err.name === "ValidationError") {
-        next(new BadRequestError("Invalid data"));
       } else {
         next(err);
       }
